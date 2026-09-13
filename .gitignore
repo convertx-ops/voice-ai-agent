@@ -1,36 +1,39 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+venv/
+env/
+ENV/
+
+# Environment
 .env
 .env.local
-agent_data.db
-audio/
-temp_audio/
-*.db
-.DS_Store
-*.log
-node_modules/
-venv/
-.venv/
+
+# Data
+data/*.db
+data/memory/*.json
+data/recordings/*
+data/audio/*
+!data/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,107 +1,170 @@
-# Voice AI Agent
-AI-powered voice conversations for interview prep, objection handling, and more.
+# 🎙️ Voice + Brain System
+
+A free, open-source AI voice assistant with local processing.
+
+**Architecture:** Microphone → Speech Recognition → LLM Brain → Text-to-Speech → Speakers
 
 ## Features
-- 🎤 Real-time voice conversations via Telegram
-- 🧠 Powered by Ollama (runs locally, free)
-- 🗣️ Natural voice responses with Edge TTS
-- 🎯 Multiple modes: Interview Prep, Objection Handling, BF/GF Chat
-- 💰 Free tier available, premium features for unlimited use
 
-## Tech Stack
-- **Backend:** Python + FastAPI
-- **AI:** Ollama (Qwen2.5)
-- **Voice In:** Whisper (faster-whisper)
-- **Voice Out:** Edge TTS (free, high quality)
-- **Database:** SQLite
-- **Bot Framework:** aiogram
+- 🎤 **Voice Input** - Real-time microphone recording with Whisper STT
+- 🧠 **Local LLM** - Ollama-powered reasoning (Qwen2.5, DeepSeek, etc.)
+- 🔊 **Voice Output** - Piper TTS (offline) or Edge TTS (online fallback)
+- 💾 **Memory System** - Short-term context + long-term saved memories
+- 🛠️ **Tools** - Calculator, file ops, memory management
+- 💯 **100% Free** - All components run locally, no paid APIs required
 
-## Quick Start
+## Requirements
 
-### 1. Install Dependencies
+### Hardware
+- **CPU:** Modern multi-core processor (4+ cores recommended)
+- **RAM:** 8GB minimum, 16GB recommended
+- **Storage:** 10GB free for models
+- **Microphone:** Any USB or built-in mic
+- **Speakers:** Any audio output
+
+### Software
+- Python 3.10+
+- Ollama (for LLM)
+- ffmpeg (for audio processing)
+
+## Installation
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/convertx-ops/voice-ai-agent.git
+cd voice-ai-agent
+```
+
+### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Install Ollama
+### 3. Install Ollama
 Download from: https://ollama.com/download
 
-### 3. Pull Model
+### 4. Pull Model
 ```bash
+# Recommended for performance
 ollama pull qwen2.5:3b
+
+# Alternatives (larger = smarter but slower)
+ollama pull qwen2.5:7b
+ollama pull deepseek-coder:6.7b
 ```
 
-### 4. Configure
+### 5. Install Piper TTS (Optional - for offline voice)
 ```bash
-cp .env.example .env
-# Edit .env with your Telegram bot token
+# Download voice model
+wget https://github.com/rhasspy/piper/releases/download/models/en_US-lessac-medium.onnx
+wget https://github.com/rhasspy/piper/releases/download/models/en_US-lessac-medium.onnx.json
+
+# Place in ~/.local/share/piper/models/
+mkdir -p ~/.local/share/piper/models
+mv en_US-lessac-medium.onnx* ~/.local/share/piper/models/
 ```
 
-### 5. Run
+### 6. Run
 ```bash
 python main.py
 ```
 
-For Telegram bot:
-```bash
-python bot.py
+## Usage
+
+### Interactive Mode
+```
+Press ENTER to speak (voice mode)
+Type text and press ENTER (text mode)
+Type 'quit' to exit
+Type 'clear' to reset conversation
+Type 'memory' to see memory stats
 ```
 
-## Telegram Bot Setup
-1. Message @BotFather on Telegram
-2. Create new bot with `/newbot`
-3. Copy the token
-4. Add to `.env` file
+### Commands
+- `remember key:value` - Save to long-term memory
+- `search query` - Search memories
+- `clear` - Reset conversation
 
-## API Endpoints
+## Architecture
 
-### Health Check
 ```
-GET /health
-```
-
-### Get Available Modes
-```
-GET /api/v1/modes
-```
-
-### Transcribe and Respond
-```
-POST /api/v1/transcribe
-Content-Type: application/json
-
-{
-  "user_id": "user123",
-  "mode": "interview",
-  "audio_data": "<base64_encoded_audio>"
-}
+┌─────────────┐     ┌──────────────┐     ┌─────────┐     ┌──────────┐     ┌──────────┐
+│  MICROPHONE │────▶│   WHISPER    │────▶│  OLLAMA  │────▶│ PIPER/   │────▶│ SPEAKERS │
+│   (Input)   │     │  (STT)       │     │  (Brain) │     │ EDGE     │     │  (Output)│
+└─────────────┘     └──────────────┘     └─────────┘     │  (TTS)   │     └──────────┘
+                                                         └──────────┘
+                                                             ▲
+                                                             │
+                                              ┌──────────────┴──────────────┐
+                                              │        TOOLS & MEMORY       │
+                                              │  - Calculator               │
+                                              │  - File Operations          │
+                                              │  - Long-term Memory         │
+                                              │  - Context Management       │
+                                              └─────────────────────────────┘
 ```
 
-### Get Conversations
+## Configuration
+
+Edit `.env` file (copy from `.env.example`):
+
+```ini
+# Ollama
+OLLAMA_MODEL=qwen2.5:3b
+OLLAMA_HOST=http://localhost:11434
+
+# Audio
+SAMPLE_RATE=16000
+CHUNK_SIZE=1024
+
+# Whisper
+WHISPER_MODEL=base      # base, small, medium
+WHISPER_DEVICE=cpu
+WHISPER_COMPUTE_TYPE=int8
+
+# TTS
+ENABLE_TTS=true
+TTS_ENGINE=piper        # piper (offline) or edge (online)
+PIPER_VOICE=en_US-lessac-medium
+EDGE_VOICE=en-IN-PrabhatNeural
+
+# Directories
+MEMORY_DIR=./memory
+RECORDINGS_DIR=./recordings
+AUDIO_DIR=./audio
 ```
-GET /api/v1/conversations/{user_id}
-```
 
-## Deployment
+## Performance Characteristics
 
-### Railway (Free Tier)
-```bash
-railway init
-railway up
-```
+| Component | Latency | Notes |
+|-----------|---------|-------|
+| Whisper STT | 2-5 sec | Depends on audio length |
+| Ollama LLM | 3-10 sec | Depends on model size |
+| Piper TTS | 1-3 sec | Offline, fast |
+| Edge TTS | 2-4 sec | Requires internet |
+| **Total** | **6-22 sec** | End-to-end response |
 
-### Render (Free Tier)
-Push to GitHub and connect to Render.
+## Limitations
 
-### Self-hosted
-Run on any server with at least 4GB RAM.
+1. **Local Processing Required** - All AI runs on your machine
+2. **Hardware Dependent** - Speed depends on your CPU/RAM
+3. **Model Size Trade-off** - Larger models = better quality but slower
+4. **No Cloud Fallback** - Requires stable local setup
+5. **Audio Quality** - Depends on microphone quality
 
-## Premium Features
-Unlocked with subscription:
-- Unlimited conversations
-- Custom personas
-- Advanced analytics
-- Priority support
+## Security
+
+- All processing happens locally
+- No data sent to external servers (except optional Edge TTS)
+- Safe file operations (restricted to home directory)
+- No shell execution by default
+- Memory is stored locally and encrypted at rest (optional)
 
 ## License
-MIT
+
+MIT License - Free for personal and commercial use.
+
+## Support
+
+- GitHub Issues: https://github.com/convertx-ops/voice-ai-agent/issues
+- Documentation: See individual module files for details
