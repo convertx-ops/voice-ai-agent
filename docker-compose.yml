@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  voice-agent:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - OLLAMA_MODEL=qwen2.5:3b
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      - ENABLE_TTS=true
+      - ACCENT_MODE=american
+    volumes:
+      - ./audio:/app/audio
+      - ./agent_data:/app/agent_data
+    restart: unless-stopped
+
+  # Ollama service (optional, if not running locally)
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
